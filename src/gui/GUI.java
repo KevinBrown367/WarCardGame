@@ -31,6 +31,7 @@ import problemDomain.*;
 
 import javax.swing.JTextArea;
 import java.awt.Font;
+import javax.swing.JOptionPane;
 
 public class GUI {
 
@@ -150,7 +151,7 @@ public class GUI {
 			gamePanel.add(player1CardDraw);
 			
 			gameInfoLbl = new JLabel();
-			gameInfoLbl.setBounds(141, 282, 144, 14);
+			gameInfoLbl.setBounds(130, 282, 190, 25);
 			gamePanel.add(gameInfoLbl);
 			
 			btnNextHand = new JButton("Next Hand!");
@@ -173,6 +174,12 @@ public class GUI {
 		}
 	}
 	
+        
+        private void win(String winningPlayer) {
+            
+            gamePanel.setEnabled(false);
+            JOptionPane.showConfirmDialog(null, winningPlayer + " has won this game. \n Another round?!");
+        }
 	/**
 	 * Begins WAR if both players draw a card of equal value.
 	 */
@@ -183,18 +190,18 @@ public class GUI {
 			
 		if(cardManager.p1.size() < 4) {
 			
-			//lose("Player 1");
+			win("Player 2");
 		}
 		else if(cardManager.p2.size() < 4) {
 			
-			//lose("Player 2");
+			win("Player 1");
 		}
 		else {
 			
 			for(int i = 0; i < 3; i++) {
 				
-				cardManager.pot.add(cardManager.p1.remove(0));
-				cardManager.pot.add(cardManager.p2.remove(0));
+                            cardManager.pot.add(cardManager.p1.remove(0));
+                            cardManager.pot.add(cardManager.p2.remove(0));
 			}
 		}
 		
@@ -214,8 +221,20 @@ public class GUI {
 			winnerHand.add(pot.remove(0));
 		}
 		gamePanel.setBackground(new Color(0, 100, 0));
+                
+                if(cardManager.p1.size() == 0) {
+                    win("Player 2");
+                }
+                else if(cardManager.p2.size() == 0) {
+                    win("Player 1");
+                }
 	}
 
+        /**
+         * Compares the value of the next drawn card by each player
+         * @param value1 card value of Player 1 card
+         * @param value2 card value of Player 2 card
+         */
 	private void compareValues(int value1, int value2) {
 		
 		if(value1 != 0 && value2 != 0) {
