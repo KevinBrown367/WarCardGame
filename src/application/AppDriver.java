@@ -10,8 +10,8 @@ import java.awt.EventQueue;
 
 /**
  *
- * @author Cameron Steinburg, Kevin Brown Solution provided in part by
- * http://pirate.shu.edu/~wachsmut/Teaching/CSAS2214/Virtual/Lectures/chat-client-server.html
+ * @author Cameron Steinburg, Kevin Brown Solution provided in part by Maryam Mousavvi 
+ * 
  */
 public class AppDriver {
 
@@ -27,7 +27,5 @@ public class AppDriver {
                 }
             }
         });
-
-        new GUI();
     }
 }

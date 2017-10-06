@@ -31,10 +31,21 @@ import problemDomain.*;
 
 import javax.swing.JTextArea;
 import java.awt.Font;
+import java.awt.HeadlessException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Date;
+import java.util.Observable;
+import java.util.Observer;
 import javax.swing.JOptionPane;
+import utilities.InputListener;
+import utilities.Message;
 
-public class GUI {
+public class GUI implements Observer {
 
+    
+    private Socket socket;
     public JFrame frame;
     private JTextField textField;
     private JLabel player1CardImg;
@@ -48,6 +59,7 @@ public class GUI {
     private JButton btnNextHand;
     private JLabel p1TotalCards;
     private JLabel p2TotalCards;
+    private JButton sendButton;
 
     private CardManager cardManager;
 
@@ -58,6 +70,12 @@ public class GUI {
     private int topCard = 0;
     private JLabel gameInfoLbl;
     private JPanel gamePanel;
+
+    private boolean newSession;
+    private ObjectOutputStream oos;
+    private InputListener inputListener;
+    private String userName;
+    
 
     /**
      * Create the application.
@@ -96,9 +114,10 @@ public class GUI {
             chatPanel.add(textField);
             textField.setColumns(10);
 
-            JButton sendMsgBtn = new JButton("Send");
-            sendMsgBtn.setBounds(154, 47, 89, 23);
-            chatPanel.add(sendMsgBtn);
+            sendButton = new JButton("Send");
+            sendButton.setBounds(154, 47, 89, 23);
+            chatPanel.add(sendButton);
+            sendButton.addActionListener(new MyActionListener());
 
             textArea = new JTextArea();
             textArea.setBounds(10, 81, 233, 287);
@@ -107,10 +126,12 @@ public class GUI {
             connectBtn = new JButton("Connect");
             connectBtn.setBounds(10, 416, 89, 23);
             chatPanel.add(connectBtn);
+            connectBtn.addActionListener(new MyActionListener());
 
             disconnectBtn = new JButton("Disconnect");
             disconnectBtn.setBounds(130, 416, 113, 23);
             chatPanel.add(disconnectBtn);
+            disconnectBtn.addActionListener(new MyActionListener());
 
             gamePanel = new JPanel();
             gamePanel.setBackground(new Color(0, 100, 0));
@@ -253,12 +274,111 @@ public class GUI {
         }
     }
 
+    @Override
+    public void update(Observable observable, Object arg) {
+        Message message = (Message) arg;
+        String msg = message.getUser() + ": " + message.getMessage() + " (" + message.getTimeStamp() + ")";
+        textArea.append(msg + "\n");
+
+        // connected to another person
+        if (message.getMessage().compareTo("You can start chatting!") == 0) {
+            sendButton.setEnabled(true); // now i can TALK!
+            disconnectBtn.setEnabled(true); // and if i don't like the other person, i can run away!
+        }
+
+        // the other person ran away!
+        if (message.getMessage().compareTo("has disconnected.") == 0) {
+            // i didn't quit the session, so i get to keep my username
+            newSession = false;
+            disconnectMe(); // drop current session
+            connectMe(); // start new session
+        }
+
+    }
+
+    private void connectMe() {
+        try {
+            socket = new Socket("localhost", 5555);
+            // if i didn't disconnect, i want to keep my username
+            if (newSession) {
+                userName = JOptionPane.showInputDialog("Enter user name");
+            }
+            connectBtn.setEnabled(false);
+
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            textArea.append("Connected! Waiting for a chat partner...\n");
+
+            //start an input listener thread
+            inputListener = new InputListener(socket, this);
+            Thread t1 = new Thread(inputListener);
+            t1.start();
+        } catch (HeadlessException e1) {
+            e1.printStackTrace();
+        } catch (UnknownHostException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+    }
+
+    private void disconnectMe() {
+        textArea.append("Disconnected.\n");
+        disconnectBtn.setEnabled(false);
+        sendButton.setEnabled(false);
+        connectBtn.setEnabled(true);
+        try {
+            oos.close();
+            socket.close();
+            inputListener = null;
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+    }
+
+
     /**
      * Click events for the card labels and buttons.
      *
      * @author 645011
      *
      */
+    private class MyActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == connectBtn) {
+                // if i can get to this button, it means i want to start a new chat session
+                newSession = true;
+                connectMe();
+                System.out.println("OLI IS A CUNT");
+            }
+            if (e.getSource() == sendButton) {
+                Message message = new Message(userName, textField.getText(), new Date());
+
+                try {
+                    oos.writeObject(message);
+                    textArea.append("Me: " + message.getMessage() + " (" + message.getTimeStamp() + ")\n");
+                    textField.setText("");
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            if (e.getSource() == disconnectBtn) {
+                // if i hit this button, it means i want to quit and next time i connect,
+                // i will need to provide my username again
+                newSession = true;
+                Message message = new Message(userName, "has disconnected.", new Date());
+                try {
+                    oos.writeObject(message);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                disconnectMe();
+            }
+        }
+    }
+
     public class MyMouseListener implements MouseListener {
 
         @Override
@@ -313,7 +433,6 @@ public class GUI {
         @Override
         public void mouseEntered(MouseEvent e) {
             // TODO Auto-generated method stub
-
         }
 
         @Override
