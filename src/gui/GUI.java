@@ -44,7 +44,6 @@ import utilities.Message;
 
 public class GUI implements Observer {
 
-    
     private Socket socket;
     public JFrame frame;
     private JTextField textField;
@@ -75,7 +74,6 @@ public class GUI implements Observer {
     private ObjectOutputStream oos;
     private InputListener inputListener;
     private String userName;
-    
 
     /**
      * Create the application.
@@ -335,7 +333,6 @@ public class GUI implements Observer {
         }
     }
 
-
     /**
      * Click events for the card labels and buttons.
      *
@@ -393,10 +390,15 @@ public class GUI implements Observer {
                         player1CardDraw.setIcon(new ImageIcon(card1.getCardImage()));
                         value1 = card1.getFaceValue();
                         cardManager.pot.add(card1);
+                        try {
+                            oos.writeObject(cardManager.pot);
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
                     }
                 }
             }
-
+/*
             if (e.getSource() == player2CardImg) {
 
                 if (cardManager.p2.size() > 0) {
@@ -409,7 +411,7 @@ public class GUI implements Observer {
                         System.out.println(card2);
                     }
                 }
-            }
+            } */
 
             if (e.getSource() == btnNextHand) {
 
