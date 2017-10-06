@@ -74,6 +74,7 @@ public class GUI implements Observer {
     private ObjectOutputStream oos;
     private InputListener inputListener;
     private String userName;
+    private String player;
 
     /**
      * Create the application.
@@ -271,15 +272,30 @@ public class GUI implements Observer {
             }
         }
     }
-
+    
+    public void update(Observable observable, Card card) {
+        
+        if(player.contains("Player 1")) {
+            
+            player2CardImg.setEnabled(false);
+        }
+        else if(player.contains("Player 2")) {
+        
+            player1CardImg.setEnabled(false);
+        }
+        
+    }
+    
     @Override
     public void update(Observable observable, Object arg) {
+        
         Message message = (Message) arg;
         String msg = message.getUser() + ": " + message.getMessage() + " (" + message.getTimeStamp() + ")";
         textArea.append(msg + "\n");
 
         // connected to another person
         if (message.getMessage().compareTo("You can start chatting!") == 0) {
+            player = message.getUser();
             sendButton.setEnabled(true); // now i can TALK!
             disconnectBtn.setEnabled(true); // and if i don't like the other person, i can run away!
         }
@@ -291,7 +307,12 @@ public class GUI implements Observer {
             disconnectMe(); // drop current session
             connectMe(); // start new session
         }
-
+        
+        if(arg instanceof Card) {
+            
+            Card card = (Card) arg;
+            
+        }
     }
 
     private void connectMe() {
@@ -395,10 +416,11 @@ public class GUI implements Observer {
                         } catch (IOException e1) {
                             e1.printStackTrace();
                         }
+                        
                     }
                 }
             }
-/*
+
             if (e.getSource() == player2CardImg) {
 
                 if (cardManager.p2.size() > 0) {
@@ -411,7 +433,7 @@ public class GUI implements Observer {
                         System.out.println(card2);
                     }
                 }
-            } */
+            }
 
             if (e.getSource() == btnNextHand) {
 
