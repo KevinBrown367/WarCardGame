@@ -3,22 +3,25 @@ package serverSide;
 import java.util.*;
 import java.net.*;
 import java.io.*;
+import problemDomain.CardManager;
 import utilities.*;
 
 /**
  * @author dwatson, kitty, Maryam
  * @version 2.0
  * 
- * Represnets a ClientHandler object that (acts like a server) and handles communication between two clients.
+ * Represents a ClientHandler object that (acts like a server) and handles communication between two clients.
  * 
  */
 public class ClientHandler implements Runnable, Observer
 {
 	//Attributes
 	private ObjectOutputStream			oos1,oos2;
-	private Socket						cs1,cs2;
+	private Socket                                  cs1,cs2;
 	private InputListener				lis1,lis2;
-	
+        
+        public CardManager cardManager;
+        
 	//Constructors
 	/**
 	 * @param cs1
@@ -52,15 +55,22 @@ public class ClientHandler implements Runnable, Observer
 		
 		try
 		{
-			Message m = new Message("Connected","You can start chatting!",new Date());
+			Message m1 = new Message("Connected Player 1","You can start chatting!",new Date());
+			Message m2 = new Message("Connected Player 2","You can start chatting!",new Date());
 			// might be nice to know who i'm chatting to... like getUserName of some sort...
-			oos1.writeObject(m);
-			oos2.writeObject(m);
+			oos1.writeObject(m1);
+			oos2.writeObject(m2);
 			
+                        // This is just testing moving the cardManager somewhere else to handle decks... Doesn't work
+                        //if(cs1.isConnected() && cs2.isConnected()) {
+                        //    cardManager = new CardManager();
+                        //    System.out.println("Both Players Connected!");
+                        //}
+                        
 			while(cs1.isConnected() && cs2.isConnected());
 			
-			cs1.close();
 			cs2.close();
+			cs1.close();
 			oos1.close();
 			oos2.close();
 		}
